@@ -5,6 +5,9 @@ import discord
 from dotenv import load_dotenv
 import json
 import re
+# my junk
+import commands
+from speech import starters, you_rolled
 
 # from spellList import spellList
 
@@ -17,18 +20,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 client = discord.Client()
 
-starters_good = [
-    "Hell yeah bro, ",
-    "You're crushing it dude. ",
-    "420 blaze it, ",
-    "Yeeeee buddy, ",
-]
-
-starters_neutral = ["Suh dude, ", "Bro, ", "Bud, "]
-
-starters_bad = ["Shit bro, ", "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... "]
-
-cast_commands = ["cast", "Cast", "CAST"]
+ac_dict = {}
 
 
 @client.event
@@ -40,45 +32,53 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
-    m_array = message.content.split()
-    yougot = message.author.name + " rolled a **"
+    content = message.content.lower()
+    if(content.startswith('dicebro')):
+        content = content[7:].strip()
+    m_array = content.split()
+    username = message.author.name
     if m_array[0] == "roll":
-        if m_array[1].isdigit():
-            num = int(m_array[1])
-            dice_array = roll(num)
+        dice = get_dice(content)
+        secondIsNum = m_array[1].isdigit()
+        if dice or secondIsNum:
+            if(dice):
+                num, sides, mod = split_dice(dice)
+                dice_array = roll(num, sides)
+            else:
+                dice_array = roll(int(m_array[1]))
             dice_max = max(dice_array)
             if dice_max < 6:
                 response = (
-                    random.choice(starters_bad)
-                    + yougot
+                    starters('bad')
+                    + you_rolled(username) + " **"
                     + ", ".join(str(x) for x in dice_array)
                     + "**"
                 )
             elif dice_max > 14:
                 response = (
-                    random.choice(starters_good)
-                    + yougot
+                    starters('good')
+                    + you_rolled(username) + " **"
                     + ", ".join(str(x) for x in dice_array)
                     + "**"
                 )
             else:
                 response = (
-                    random.choice(starters_neutral)
-                    + yougot
+                    starters('good')
+                    + you_rolled(username) + " **"
                     + ", ".join(str(x) for x in dice_array)
                     + "**"
                 )
 
             await message.channel.send(response)
-    elif m_array[0] in cast_commands:
-        spell_name = message.content[5:]
+    # Check for casting phrases
+    elif any(phrase in content for phrase in commands.cast):
+        spell_index = content.find("cast") + 4
+        spell_name = content[spell_index:]
         spell_name = "".join(e for e in spell_name if e.isalnum()).lower()
         print(spell_name)
         spell = spell_dict[spell_name]
-        print(spell)
         await message.channel.send(
-            message.author.name + " is casting " + spell["name"] + "!"
+            message.author.name + " casted " + spell["name"] + "!"
         )
         desc_array = spell["desc"].split("</p>")
         for i in desc_array:
@@ -86,13 +86,10 @@ async def on_message(message):
             if response != "":
                 await message.channel.send("*" + response + "*")
         await message.channel.send("******")
-        m = re.search(r"(\d+)?d(\d+)([\+\-]\d+)?", spell["desc"])
-        print(m.group())
-        print(m.span())
-        if m:
-            damage = m.group()
-            damage_array = damage.split("d")
-            dice_array = roll(int(damage_array[0]), int(damage_array[1]))
+        damage = get_dice(spell['desc'])
+        if damage:
+            num, sides, mod = split_dice(damage)
+            dice_array = roll(num, sides)
             await message.channel.send(
                 "pew pew pew! Rolling "
                 + damage
@@ -111,8 +108,36 @@ def roll(number, dice=20):
     return dice_array
 
 
+def get_dice(str):
+    m = re.search(r"(\d+)?d(\d+)([\+\-]\d+)?", str.lower())
+    if m:
+        return m.group()
+    else:
+        return False
+
+
+def get_dice_location(str):
+    m = re.search(r"(\d+)?d(\d+)([\+\-]\d+)?", str)
+    if m:
+        return m.span()
+    else:
+        return False
+
+
+def split_dice(str):
+    split = str.lower().split("d")
+    if '+' in split[1]:
+        split.append(split[1].split("+")[1])
+        split[1] = split[1].split("+")[0]
+    elif '-' in split[1]:
+        split.append(split[1].split("-")[1])
+        split[1] = split[1].split("-")[0]
+    else:
+        split.append(0)
+    return int(split[0]), int(split[1]), int(split[2])
+
 # SUCK MY ASS on crit fail
-# NO DON'T on crit fail
+# NO DON'T for defense roll
 
 
 client.run(TOKEN)
