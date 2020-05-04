@@ -5,6 +5,7 @@ import discord
 from dotenv import load_dotenv
 import json
 import re
+import pickle
 # my junk
 import commands
 from speech import starters, you_rolled
@@ -20,7 +21,12 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 client = discord.Client()
 
-ac_dict = {}
+user_data = {}
+
+# Load data (deserialize)
+if(os.path.exists('data.pickle')):
+    with open('data.pickle', 'rb') as handle:
+        user_data = pickle.load(handle)
 
 
 @client.event
@@ -70,7 +76,7 @@ async def on_message(message):
                 )
 
             await message.channel.send(response)
-    # Check for casting phrases
+    # CAST SPELLS
     elif any(phrase in content for phrase in commands.cast):
         spell_index = content.find("cast") + 4
         spell_name = content[spell_index:]
@@ -99,6 +105,28 @@ async def on_message(message):
                 + str(sum(dice_array))
                 + "**"
             )
+    # Set AC per user
+    elif m_array[0] == "ac":
+        update_user_data(username, "AC", int(m_array[1]))
+        await message.channel.send("AC for " + username + " set at " + m_array[1])
+    # Make a defense roll
+    elif any(phrase in content for phrase in commands.defense_roll):
+        if username in user_data:
+            if('AC' in user_data[username]):
+                the_roll = roll(1, 20)
+                defense_total = the_roll[0] + user_data[username]['AC']
+                await message.channel.send("You got this bro! " + username + " tries to avoid with a `" + str(the_roll) + "` + " + str(user_data[username]['AC']) + ' = **' + str(defense_total) + "**")
+            else:
+                await message.channel.send("Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'")
+        else:
+            await message.channel.send("Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'")
+
+
+def update_user_data(user, key, value):
+    if user not in user_data:
+        user_data[user] = {}
+    user_data[user][key] = value
+    store_user_data()
 
 
 def roll(number, dice=20):
@@ -138,6 +166,12 @@ def split_dice(str):
 
 # SUCK MY ASS on crit fail
 # NO DON'T for defense roll
+
+
+def store_user_data():
+    # Store data (serialize)
+    with open('data.pickle', 'wb') as handle:
+        pickle.dump(user_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 client.run(TOKEN)
