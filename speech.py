@@ -6,16 +6,18 @@ starters_good_list = [
     "420 blaze it, ",
     "Yeeeee buddy, ",
     "My guy, ",
-    "Sick bro! "
+    "Sick bro! ",
 ]
 
 starters_neutral_list = ["Suh dude, ", "Bro, ", "Bud, "]
 
-starters_bad_list = ["Shit bro, ",
-                     "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... "]
+starters_bad_list = ["Shit bro, ", "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... "]
 
-you_rolled_list = ["rolled a", "laid down a",
-                   "tossed a", "flipped a", "flipped a"]
+you_rolled_list = ["rolled a", "laid down a", "tossed a", "flipped a", "flipped a"]
+
+crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat"]
+
+crit_success = ["YOOOOOOOOOOOOOOO", "BROOOOO BRO. YEH. BRO."]
 
 
 def starters(kind: str):
