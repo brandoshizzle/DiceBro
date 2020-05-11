@@ -20,6 +20,10 @@ starters_bad_list = ["Shit bro, ",
 you_rolled_list = ["rolled a", "laid down a",
                    "tossed a", "flipped a", "flipped a"]
 
+crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat"]
+
+crit_success = ["YOOOOOOOOOOOOOOO", "BROOOOO BRO. YEH. BRO."]
+
 
 def starters(kind: str):
     if kind == "good":

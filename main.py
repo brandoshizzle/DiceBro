@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 import json
 import re
 import pickle
+
 # my junk
 import commands
-from speech import starters, you_rolled
+from speech import starters, you_rolled, crit_fail, crit_success
 
 # from spellList import spellList
 
@@ -24,8 +25,8 @@ client = discord.Client()
 user_data = {}
 
 # Load data (deserialize)
-if(os.path.exists('data.pickle')):
-    with open('data.pickle', 'rb') as handle:
+if os.path.exists("data.pickle"):
+    with open("data.pickle", "rb") as handle:
         user_data = pickle.load(handle)
 
 
@@ -39,40 +40,59 @@ async def on_message(message):
     if message.author == client.user:
         return
     content = message.content.lower()
-    if(content.startswith('dicebro')):
+    if content.startswith("dicebro"):
         content = content[7:].strip()
     m_array = content.split()
     username = message.author.name
-    if m_array[0] == "roll":
-        dice = get_dice(content)
-        secondIsNum = m_array[1].isdigit()
+    if m_array[0] == "roll" or len(m_array) == 1:
+
+        if len(m_array) > 1:
+            dice = get_dice(content)
+            secondIsNum = m_array[1].isdigit()
+        else:
+            dice = False
+            secondIsNum = True
+
         if dice or secondIsNum:
-            if(dice):
+            if dice:
                 num, sides, mod = split_dice(dice)
                 dice_array = roll(num, sides)
             else:
-                dice_array = roll(int(m_array[1]))
+                if len(m_array) > 1:
+                    dice_array = roll(int(m_array[1]))
+                    mod = 0
+                else:
+                    if m_array[0] == "roll":
+                        dice_array = roll(1)
+                        mod = 0
+                    elif get_dice(content):
+                        dice = get_dice(content)
+                        num, sides, mod = split_dice(dice)
+                        dice_array = roll(num, sides)
+                    else:
+                        return False
             dice_max = max(dice_array)
-            if dice_max < 6:
+            if dice_max == 20:
+                await message.channel.send(random.choice(crit_success))
+                response = you_rolled(username) + print_dice(dice_array, mod)
+            elif min(dice_array) == 1:
+                await message.channel.send(random.choice(crit_fail))
+                response = you_rolled(username) + print_dice(dice_array, mod)
+            elif dice_max < 8:
                 response = (
-                    starters('bad')
-                    + you_rolled(username) + " **"
-                    + ", ".join(str(x) for x in dice_array)
-                    + "**"
+                    starters("bad") + you_rolled(username) + print_dice(dice_array, mod)
                 )
             elif dice_max > 14:
                 response = (
-                    starters('good')
-                    + you_rolled(username) + " **"
-                    + ", ".join(str(x) for x in dice_array)
-                    + "**"
+                    starters("good")
+                    + you_rolled(username)
+                    + print_dice(dice_array, mod)
                 )
             else:
                 response = (
-                    starters('good')
-                    + you_rolled(username) + " **"
-                    + ", ".join(str(x) for x in dice_array)
-                    + "**"
+                    starters("neutral")
+                    + you_rolled(username)
+                    + print_dice(dice_array, mod)
                 )
 
             await message.channel.send(response)
@@ -92,18 +112,16 @@ async def on_message(message):
             if response != "":
                 await message.channel.send("*" + response + "*")
         await message.channel.send("******")
-        damage = get_dice(spell['desc'])
+        damage = get_dice(spell["desc"])
         if damage:
             num, sides, mod = split_dice(damage)
             dice_array = roll(num, sides)
             await message.channel.send(
                 "pew pew pew! Rolling "
                 + damage
-                + ": `["
-                + ", ".join(str(x) for x in dice_array)
-                + "]` = **"
-                + str(sum(dice_array))
-                + "**"
+                + ": || "
+                + print_dice(dice_array, mod)
+                + "||"
             )
     # Set AC per user
     elif m_array[0] == "ac":
@@ -112,14 +130,28 @@ async def on_message(message):
     # Make a defense roll
     elif any(phrase in content for phrase in commands.defense_roll):
         if username in user_data:
-            if('AC' in user_data[username]):
+            if "AC" in user_data[username]:
                 the_roll = roll(1, 20)
-                defense_total = the_roll[0] + user_data[username]['AC']
-                await message.channel.send("You got this bro! " + username + " tries to avoid with a `" + str(the_roll) + "` + " + str(user_data[username]['AC']) + ' = **' + str(defense_total) + "**")
+                defense_total = the_roll[0] + user_data[username]["AC"]
+                await message.channel.send(
+                    "You got this bro! "
+                    + username
+                    + " tries to avoid with a `"
+                    + str(the_roll)
+                    + "` + "
+                    + str(user_data[username]["AC"])
+                    + " = **"
+                    + str(defense_total)
+                    + "**"
+                )
             else:
-                await message.channel.send("Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'")
+                await message.channel.send(
+                    "Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'"
+                )
         else:
-            await message.channel.send("Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'")
+            await message.channel.send(
+                "Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'"
+            )
 
 
 def update_user_data(user, key, value):
@@ -154,15 +186,36 @@ def get_dice_location(str):
 
 def split_dice(str):
     split = str.lower().split("d")
-    if '+' in split[1]:
+    if "+" in split[1]:
         split.append(split[1].split("+")[1])
         split[1] = split[1].split("+")[0]
-    elif '-' in split[1]:
+    elif "-" in split[1]:
         split.append(split[1].split("-")[1])
-        split[1] = split[1].split("-")[0]
+        split[1] = "-" + split[1].split("-")[0]
     else:
         split.append(0)
     return int(split[0]), int(split[1]), int(split[2])
+
+
+def print_dice(dice_array, mod):
+    if mod > 0:
+        mod_sign = "+ " + str(mod)
+    elif mod < 0:
+        mod_sign = "- " + str(mod)[1:]
+    else:
+        mod_sign = ""
+
+    the_string = (
+        " `["
+        + ", ".join(str(x) for x in dice_array)
+        + "]` "
+        + mod_sign
+        + " = **"
+        + str(sum(dice_array) + mod)
+        + "**"
+    )
+    return the_string
+
 
 # SUCK MY ASS on crit fail
 # NO DON'T for defense roll
@@ -170,7 +223,7 @@ def split_dice(str):
 
 def store_user_data():
     # Store data (serialize)
-    with open('data.pickle', 'wb') as handle:
+    with open("data.pickle", "wb") as handle:
         pickle.dump(user_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
