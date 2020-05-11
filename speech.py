@@ -6,13 +6,16 @@ starters_good_list = [
     "420 blaze it, ",
     "Yeeeee buddy, ",
     "My guy, ",
-    "Sick bro! "
+    "Sick bro! ",
+    "SKKKRAT SKKKRAT! ",
+    "Hold my spitter, bro... ",
 ]
 
-starters_neutral_list = ["Suh dude, ", "Bro, ", "Bud, "]
+starters_neutral_list = ["Suh dude, ", "Bro, ",
+                         "Bud, ", "HEY GUYS, Dicebro here. ", "Three things are gunna happen: I hit you, you hit the ground, and "]
 
 starters_bad_list = ["Shit bro, ",
-                     "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... "]
+                     "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... ", "Give your balls a tug. "]
 
 you_rolled_list = ["rolled a", "laid down a",
                    "tossed a", "flipped a", "flipped a"]
