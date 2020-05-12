@@ -7,13 +7,18 @@ starters_good_list = [
     "Yeeeee buddy, ",
     "My guy, ",
     "Sick bro! ",
+    "SKKKRAT SKKKRAT! ",
+    "Hold my spitter, bro... ",
 ]
 
-starters_neutral_list = ["Suh dude, ", "Bro, ", "Bud, "]
+starters_neutral_list = ["Suh dude, ", "Bro, ",
+                         "Bud, ", "HEY GUYS, Dicebro here. ", "Three things are gunna happen: I hit you, you hit the ground, and "]
 
-starters_bad_list = ["Shit bro, ", "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... "]
+starters_bad_list = ["Shit bro, ",
+                     "Sheeeeeeeeeeeeeet. " "Damn bro, ", "My guy... ", "Give your balls a tug. "]
 
-you_rolled_list = ["rolled a", "laid down a", "tossed a", "flipped a", "flipped a"]
+you_rolled_list = ["rolled a", "laid down a",
+                   "tossed a", "flipped a", "flipped a"]
 
 crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat"]
 
