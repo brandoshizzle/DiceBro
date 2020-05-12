@@ -26,7 +26,7 @@ crit_fail = ["Everybody's dying :(", "NO DON'T",
              "f in the chat", "Ya fucked er, bud."]
 
 crit_success = ["YOOOOOOOOOOOOOOO",
-                "BROOOOO BRO. YEH. BRO.", "COME ON AND SLAM!"]
+                "BROOOOO BRO. YEH. BRO.", "COME ON AND SLAM!", "That's a lot of damage!"]
 
 just_chatting = ["Gonna crush some sandos after prackie."]
 
