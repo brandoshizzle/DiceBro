@@ -44,58 +44,25 @@ async def on_message(message):
         content = content[7:].strip()
     m_array = content.split()
     username = message.author.name
-    if m_array[0] == "roll" or len(m_array) == 1:
+    # Check for starting with roll
+    if m_array[0] == "roll":
+        # If only 1 word, then assume 1d20
+        if len(m_array) == 1:
+            content = "1d20"
+        # If 2 words, then next is # of dice
+        elif len(m_array) == 2 and m_array[1].isdigit():
+            content = str(m_array[1]) + "d20"
 
-        if len(m_array) > 1:
-            dice = get_dice(content)
-            secondIsNum = m_array[1].isdigit()
-        else:
-            dice = False
-            secondIsNum = True
+        # Get the dice from the original string or our provided string
+        dice = get_dice(content)
 
-        if dice or secondIsNum:
-            if dice:
-                num, sides, mod = split_dice(dice)
-                dice_array = roll(num, sides)
-            else:
-                if len(m_array) > 1:
-                    dice_array = roll(int(m_array[1]))
-                    mod = 0
-                else:
-                    if m_array[0] == "roll":
-                        dice_array = roll(1)
-                        mod = 0
-                    elif get_dice(content):
-                        dice = get_dice(content)
-                        num, sides, mod = split_dice(dice)
-                        dice_array = roll(num, sides)
-                    else:
-                        return False
-            dice_max = max(dice_array)
-            if dice_max == 20:
-                await message.channel.send(random.choice(crit_success))
-                response = you_rolled(username) + print_dice(dice_array, mod)
-            elif min(dice_array) == 1:
-                await message.channel.send(random.choice(crit_fail))
-                response = you_rolled(username) + print_dice(dice_array, mod)
-            elif dice_max < 8:
-                response = (
-                    starters("bad") + you_rolled(username) + print_dice(dice_array, mod)
-                )
-            elif dice_max > 14:
-                response = (
-                    starters("good")
-                    + you_rolled(username)
-                    + print_dice(dice_array, mod)
-                )
-            else:
-                response = (
-                    starters("neutral")
-                    + you_rolled(username)
-                    + print_dice(dice_array, mod)
-                )
-
+        if dice:
+            # Save roll as last roll
+            update_user_data(username, "last_roll", dice)
+            response = await rigama_roll(dice, message)
+            # Send response
             await message.channel.send(response)
+
     # CAST SPELLS
     elif any(phrase in content for phrase in commands.cast):
         spell_index = content.find("cast") + 4
@@ -114,6 +81,7 @@ async def on_message(message):
         await message.channel.send("******")
         damage = get_dice(spell["desc"])
         if damage:
+            update_user_data(username, "last_roll", damage)
             num, sides, mod = split_dice(damage)
             dice_array = roll(num, sides)
             await message.channel.send(
@@ -152,6 +120,21 @@ async def on_message(message):
             await message.channel.send(
                 "Yo " + username + ", you forgot to set your AC. Type ex. 'AC 14'"
             )
+    # Redo the last roll
+    elif content == "and again" or content == "and again!":
+        # const ayy = client.emojis.find(emoji => emoji.name === "ayy")
+        if username in user_data:
+            if "last_roll" in user_data[username]:
+                response = await rigama_roll(user_data[username]["last_roll"], message)
+                # Send response
+                await message.channel.send(
+                    username + "'s last roll was " + user_data[username]["last_roll"]
+                )
+                await message.channel.send(response)
+            else:
+                await message.channel.send("Gotta roll something first bro!")
+        else:
+            await message.channel.send("Gotta roll something first bro!")
 
 
 def update_user_data(user, key, value):
@@ -159,6 +142,43 @@ def update_user_data(user, key, value):
         user_data[user] = {}
     user_data[user][key] = value
     store_user_data()
+
+
+async def rigama_roll(dice, message):
+    # Parse the dice string into number of dice, number of sides, and modifier
+    num, sides, mod = split_dice(dice)
+    # Roll dice and return an array of the results
+    dice_array = roll(num, sides)
+    # Determine the maximum value
+    dice_max = max(dice_array)
+
+    username = message.author.name
+
+    # Determine message to send!
+    # Crit success message
+    if dice_max == 20 and sides == 20:
+        await message.channel.send(random.choice(crit_success))
+        response = you_rolled(username) + print_dice(dice_array, mod)
+    # Crit fail message
+    elif min(dice_array) == 1 and sides == 20:
+        await message.channel.send(random.choice(crit_fail))
+        response = you_rolled(username) + print_dice(dice_array, mod)
+    # Crit damage message
+    elif dice_max == sides and sides < 20:
+        await message.channel.send("That's a lot of damage!")
+        response = you_rolled(username) + print_dice(dice_array, mod)
+    # Bad roll message
+    elif dice_max < sides * 0.3:
+        response = starters("bad") + you_rolled(username) + print_dice(dice_array, mod)
+    # Good roll message
+    elif dice_max > sides * 0.85:
+        response = starters("good") + you_rolled(username) + print_dice(dice_array, mod)
+    # Neutral roll message
+    else:
+        response = (
+            starters("neutral") + you_rolled(username) + print_dice(dice_array, mod)
+        )
+    return response
 
 
 def roll(number, dice=20):

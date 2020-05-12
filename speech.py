@@ -17,7 +17,7 @@ you_rolled_list = ["rolled a", "laid down a", "tossed a", "flipped a", "flipped 
 
 crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat"]
 
-crit_success = ["YOOOOOOOOOOOOOOO", "BROOOOO BRO. YEH. BRO."]
+crit_success = ["YOOOOOOOOOOOOOOO", "BROOOOO BRO. YEH. BRO.", "That's a lot of damage!"]
 
 
 def starters(kind: str):
