@@ -9,7 +9,7 @@ import pickle
 
 # my junk
 import commands
-from speech import starters, you_rolled, crit_fail, crit_success
+from speech import starters, you_rolled, crit_fail, crit_success, faq
 
 # from spellList import spellList
 
@@ -135,6 +135,9 @@ async def on_message(message):
                 await message.channel.send("Gotta roll something first bro!")
         else:
             await message.channel.send("Gotta roll something first bro!")
+    # Ask for help/faq
+    elif any(phrase in m_array[0] for phrase in commands.faq):
+        await message.channel.send(random.choice(faq))
 
 
 def update_user_data(user, key, value):

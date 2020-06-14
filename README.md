@@ -10,3 +10,4 @@ Roll my dice!
 -   Rolling ranged attacks for spells
 -   AND AGAIN
 -   attune
+-   initiative
