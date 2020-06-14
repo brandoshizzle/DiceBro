@@ -9,6 +9,8 @@ starters_good_list = [
     "Sick bro! ",
     "SKKKRAT SKKKRAT! ",
     "Hold my spitter, bro... ",
+    "Like, dude! ",
+    "Wheel, snipe, celly boys. ",
 ]
 
 starters_neutral_list = [
@@ -24,13 +26,26 @@ starters_bad_list = [
     "Sheeeeeeeeeeeeeet. " "Damn bro, ",
     "My guy... ",
     "Give your balls a tug. ",
+    "Jinkies!",
+    "Jeepers!",
+    "Zoinks!",
+    "Ruh-Roh!",
 ]
 
 you_rolled_list = ["rolled a", "laid down a", "tossed a", "flipped a", "flipped a"]
 
-crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat"]
+crit_fail = ["Everybody's dying :(", "NO DON'T", "f in the chat", "Ya fucked er, bud."]
 
-crit_success = ["YOOOOOOOOOOOOOOO", "BROOOOO BRO. YEH. BRO.", "That's a lot of damage!"]
+crit_success = [
+    "YOOOOOOOOOOOOOOO",
+    "BROOOOO BRO. YEH. BRO.",
+    "COME ON AND SLAM!",
+    "That's a lot of damage!",
+]
+
+just_chatting = ["Gonna crush some sandos after prackie."]
+
+sfx = [[""]]
 
 faq = [
     "Haha gl bro",
